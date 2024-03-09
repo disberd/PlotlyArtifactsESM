@@ -33,4 +33,5 @@ async function next_unreleased(current_version = "v0.0.0") {
   return smallest_version
 }
 
-console.log(await next_unreleased())
+// console.log(await next_unreleased())
+console.log(process.env.TOKEN)
