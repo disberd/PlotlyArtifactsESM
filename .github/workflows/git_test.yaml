@@ -1,6 +1,11 @@
 name: Test Git
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+        description: 'Plotly version to add'
 permissions:
   actions: write
   contents: write
