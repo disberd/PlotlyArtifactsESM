@@ -11,7 +11,7 @@ permissions:
   contents: write
 jobs:
   my-job:
-    name: check new versions
+    name: print stuff
     env:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
