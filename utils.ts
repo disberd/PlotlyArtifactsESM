@@ -253,6 +253,9 @@ export async function uploadReleaseArtifact(options = {}) {
 }
 
 export async function maybeReleaseVersion(inp: string | ReleasesData) {
+  if (typeof inp === "string" && semver.valid(inp) === null) {
+    throw new Error(`The provided input should be a fully qualified semver version of the form X.Y.Z or vX.Y.Z`)
+  }
   const rdata = (typeof inp === "string") ? await extractReleases(inp) : inp
   const { local_release, plotly_release, version } = rdata;
   if (plotly_release === undefined) {
