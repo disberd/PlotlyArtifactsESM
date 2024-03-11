@@ -236,6 +236,7 @@ export async function buildArtifactTar(inp: string | ReleasesData, options = {in
   // ensure that we have a full semver version
   // Install the plotly version
   if (options.install) {
+    console.log('installing')
     await $`bun install plotly.js-dist-min${version.replace("v", "@")}`
   }
   // Build the bundle
@@ -249,16 +250,16 @@ export async function buildArtifactTar(inp: string | ReleasesData, options = {in
   console.log(path.join(outdir, "VERSION"))
   console.log(await $`ls -l`.text())
   // Write the specified version to file
-  fs.writeFileSync(path.join(outdir, "VERSION"), version);
-  // Create the zip containing the module and VERSION
-  await tar.create(
-    {
-      gzip: true,
-      file: tar_name,
-      cwd: outdir,
-    },
-    [bundle_name, "VERSION"]
-  );
+  // fs.writeFileSync(path.join(outdir, "VERSION"), version);
+  // // Create the zip containing the module and VERSION
+  // await tar.create(
+  //   {
+  //     gzip: true,
+  //     file: tar_name,
+  //     cwd: outdir,
+  //   },
+  //   [bundle_name, "VERSION"]
+  // );
 }
 
 export async function uploadReleaseArtifacts(inp: string | ReleasesData, options = {}) {
