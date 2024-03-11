@@ -174,6 +174,7 @@ export async function createLocalRelease(inp: string | ReleasesData, options = {
   });
 
   const create_response = await octokit.rest.repos.createRelease(options);
+  rdata.local_release = create_response.data
   return create_response.data
 }
 
