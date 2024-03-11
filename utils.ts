@@ -320,7 +320,9 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   // We create the release
   const release = await createLocalRelease(rdata)
   // We build and upload the artifacts
-  await uploadReleaseArtifacts(rdata)
+  let options = {}
+  await buildArtifactTar(rdata, options)
+  console.log(options)
   console.log(process.cwd())
   console.log(await fs.promises.readdir(process.cwd()))
   return
