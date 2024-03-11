@@ -270,7 +270,7 @@ export async function uploadReleaseArtifacts(inp: string | ReleasesData, options
   }
   const release_id = release.id;
   // Build the artifact first
-  await buildArtifactTar(version, options);
+  // await buildArtifactTar(version, options);
   return
   const { tar_name, outdir, bundle_name } = options;
   // Upload the tar artifact
@@ -320,4 +320,5 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   const release = await createLocalRelease(rdata)
   // We build and upload the artifacts
   await uploadReleaseArtifacts(rdata)
+  return
 }
