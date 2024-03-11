@@ -245,6 +245,9 @@ export async function buildArtifactTar(inp: string | ReleasesData, options = {in
     minify: true,
     naming: `[dir]/${bundle_name}`,
   });
+  console.log(outdir)
+  console.log(path.join(outdir, "VERSION"))
+  console.log(await $`ls -l`.text())
   // Write the specified version to file
   fs.writeFileSync(path.join(outdir, "VERSION"), version);
   // Create the zip containing the module and VERSION
