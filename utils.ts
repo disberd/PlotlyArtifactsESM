@@ -272,6 +272,7 @@ export async function uploadReleaseArtifacts(inp: string | ReleasesData, options
   const release_id = release.id;
   // Build the artifact first
   await buildArtifactTar(version, options);
+  return
   const { tar_name, outdir, bundle_name } = options;
   // Upload the tar artifact
   const tarContents = await fs.promises.readFile(tar_name);
