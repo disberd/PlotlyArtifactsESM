@@ -200,7 +200,7 @@ export async function commitNewVersion(inp: string | ReleasesData) {
     return true;
   }
   // We write to the file
-  fs.writeFileSync("VERSION", version);
+  await fs.promises.writeFile("VERSION", version);
   // We commit the changed version. NOTE: We directly call the shell commands now but we should consider using the API in the future
   await $`git config user.name "Add Plotly Version"`;
   await $`git config user.email "add_plotly_version@email.com"`;
