@@ -225,11 +225,12 @@ export async function getReleaseAssets(inp: string | ReleasesData) {
 }
 
 // Build the plotly artifact taking the version from the VERSION file
-export async function buildArtifactTar(inp: string | ReleasesData, options = {install: true}) {
+export async function buildArtifactTar(inp: string | ReleasesData, options = {}) {
   _.defaults(options, {
     bundle_name: "plotly-esm-min.mjs",
     outdir: path.join(process.cwd(),"out"),
     tar_name: "plotly-esm-min.tar.gz",
+    install: true,
   });
   const version = (typeof inp === "string") ? inp : inp.version;
   const { bundle_name, outdir, tar_name } = options;
@@ -272,8 +273,6 @@ export async function uploadReleaseArtifacts(inp: string | ReleasesData, options
   // Build the artifact first
   await buildArtifactTar(rdata, options);
   const { tar_name, outdir, bundle_name } = options;
-  console.log(options)
-  return
   // Upload the tar artifact
   const tarContents = await fs.promises.readFile(tar_name);
   let response = await octokit.rest.repos.uploadReleaseAsset({
@@ -321,9 +320,6 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   const release = await createLocalRelease(rdata)
   // We build and upload the artifacts
   let options = {}
-  await buildArtifactTar(rdata, options)
-  console.log(options)
-  console.log(process.cwd())
-  console.log(await fs.promises.readdir(process.cwd()))
+  await uploadReleaseArtifacts(rdata, options)
   return
 }
