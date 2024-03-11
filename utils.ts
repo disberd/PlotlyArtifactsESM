@@ -248,6 +248,7 @@ export async function buildArtifactTar(inp: string | ReleasesData, options = {in
   });
   console.log(outdir)
   console.log(path.join(outdir, "VERSION"))
+  console.log(await fs.promises.readdir("."))
   const message = await $`ls -l`.text()
   console.log('lol ', message)
   // Write the specified version to file
