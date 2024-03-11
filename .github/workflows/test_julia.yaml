@@ -20,5 +20,6 @@ jobs:
           version: '1.9'
       - uses: julia-actions/cache@v1
       - run: bun install
+      - run:  echo "$OWNER, $(REPO)"
       - run: |
           echo "Owner: $(OWNER), Repo: $(REPO)"
