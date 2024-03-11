@@ -248,7 +248,7 @@ export async function buildArtifactTar(inp: string | ReleasesData, options = {in
   // Write the specified version to file
   await fs.promises.writeFile(path.join(outdir, "VERSION"), version);
   // Create the zip containing the module and VERSION
-  await tar.create(
+  return await tar.create(
     {
       gzip: true,
       file: tar_name,
