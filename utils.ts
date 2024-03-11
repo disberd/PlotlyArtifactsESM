@@ -8,8 +8,16 @@ import _ from "lodash";
 
 /* Generic */
 // Make the version full semver format with preceding v
-function normalizeVersion(version: string) {
-  return `v${semver.coerce(version).version}`;
+export function normalizeVersion(version: string, strict = false) {
+  const coerced = semver.coerce(version);
+  const isfull = semver.valid(version) !== null;
+  if (coerced === null) {
+    throw new Error("The provided input should be a string convertible to a semver version using `semver.coerce`")
+  }
+  if (strict && semver.valid(version) === null) {
+    throw new Error(`The provided input should be a fully qualified semver version of the form X.Y.Z or vX.Y.Z`)
+  }
+  return `v${coerced.version}`;
 }
 
 // Extract the semver version from the VERSION file in the calling directory
@@ -51,6 +59,20 @@ export async function getLocalRelease(version: string) {
   } catch (error) {
     return undefined;
   }
+}
+
+export async function hasLocalTag(version: string) {
+  version = normalizeVersion(version);
+  try {
+    await octokit.rest.git.getRef({
+      owner: process.env.OWNER,
+      repo: process.env.REPO,
+      ref: `tags/${version}`,
+    });
+  } catch (error) {
+    return false;
+  }
+  return true
 }
 
 export async function latestPlotlyRelease() {
@@ -114,19 +136,22 @@ interface ReleasesData {
   local_release: any;
   plotly_release: any;
   version: string;
+  hastag: boolean;
 }
 export async function extractReleases(version:string) {
   version = normalizeVersion(version);
   // Make sure that the provided version does not exists already
   const release_reponse = await getLocalRelease(version);
   const local_release = release_reponse?.data
+  const hastag = await hasLocalTag(version);
 
   // Extract the plotly.js corresponding release to ensure it exists and to extract the html url
   const plotly_release_response = await getPlotlyRelease(version);
   return {
     local_release,
     plotly_release: plotly_release_response?.data,
-    version
+    version,
+    hastag
   }
 }
 export async function createLocalRelease(inp: string | ReleasesData, options = {}) {
@@ -152,12 +177,18 @@ export async function createLocalRelease(inp: string | ReleasesData, options = {
   return create_response.data
 }
 
+// This function tries prepares for releasing a new version by commiting the corresponding change to the VERSION file.
+// It returns a boolean specifying whether the release has to be performed
 export async function commitNewVersion(inp: string | ReleasesData) {
   const rdata = (typeof inp === "string") ? await extractReleases(inp) : inp
-  const { local_release, plotly_release, version } = rdata;
+  const { local_release, plotly_release, version, hastag } = rdata;
   if (local_release !== undefined) {
     console.log(`Release with version ${version} already exists`);
     return false;
+  }
+  if (hastag) {
+    console.log(`Release with version ${version} does not exists, but a tag with the same version already exists.`);
+    return true
   }
   // Otherwise, we check if the VERSION file already exists and has the correct version
   if (
@@ -193,17 +224,19 @@ export async function getReleaseAssets(inp: string | ReleasesData) {
 }
 
 // Build the plotly artifact taking the version from the VERSION file
-export async function buildArtifact(options: object = {}) {
+export async function buildArtifactTar(inp: string | ReleasesData, options = {install: true}) {
   _.defaults(options, {
     bundle_name: "plotly-esm-min.mjs",
     outdir: "./out",
     tar_name: "plotly-esm-min.tar.gz",
   });
-  const version = versionFromFile();
+  const version = (typeof inp === "string") ? inp : inp.version;
   const { bundle_name, outdir, tar_name } = options;
   // ensure that we have a full semver version
   // Install the plotly version
-  await $`bun install plotly.js-dist-min${version.replace("v", "@")}`
+  if (options.install) {
+    await $`bun install plotly.js-dist-min${version.replace("v", "@")}`
+  }
   // Build the bundle
   await Bun.build({
     entrypoints: ["./plotly_esm.ts"],
@@ -224,21 +257,22 @@ export async function buildArtifact(options: object = {}) {
   );
 }
 
-export async function uploadReleaseArtifact(options = {}) {
+export async function uploadReleaseArtifacts(inp: string | ReleasesData, options = {}) {
   // Extract the version from the VERSION file
-  const version = versionFromFile();
+  const rdata = (typeof inp === "string") ? await extractReleases(inp) : inp
+  const { local_release: release, version } = rdata;
   // Ensure that the release already exists
-  const release = await getLocalRelease(version);
   if (release === undefined) {
     throw new Error(
       `Release with version ${version} does not exist. Please create it first.`
     );
   }
-  const release_id = release.data.id;
+  const release_id = release.id;
   // Build the artifact first
-  await buildArtifact(options);
-  const { tar_name } = options;
-  const fileContents = fs.readFileSync(tar_name);
+  await buildArtifactTar(version, options);
+  const { tar_name, outdir, bundle_name } = options;
+  // Upload the tar artifact
+  const tarContents = fs.readFileSync(tar_name);
   let response = await octokit.rest.repos.uploadReleaseAsset({
     headers: {
       "content-type": "application/gzip",
@@ -246,8 +280,21 @@ export async function uploadReleaseArtifact(options = {}) {
     owner: process.env.OWNER,
     repo: process.env.REPO,
     release_id: release_id,
-    data: fileContents,
+    data: tarContents,
     name: tar_name,
+  });
+  // Upload the tar artifact
+  const filePath = path.join(outdir, bundle_name);
+  const fileContents = fs.readFileSync(filePath);
+  response = await octokit.rest.repos.uploadReleaseAsset({
+    headers: {
+      "content-type": "text/javascript",
+    },
+    owner: process.env.OWNER,
+    repo: process.env.REPO,
+    release_id: release_id,
+    data: fileContents,
+    name: bundle_name,
   });
   return response
 }
@@ -259,12 +306,16 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   const rdata = (typeof inp === "string") ? await extractReleases(inp) : inp
   const { local_release, plotly_release, version } = rdata;
   if (plotly_release === undefined) {
-    console.log(`Release with version ${version} does not exist in the plotly library. Skipping.`)
-    return
+    throw new Error(`Release with version ${version} does not exist in the plotly library.`)
   }
   if (local_release !== undefined) {
-    console.log(`Release with version ${version} already exists locally. Skipping.`)
-    return
+    throw new Error(`Release with version ${version} already exists locally.`)
   }
   console.log(`Creating new release with version ${version}...`)
+  // We eventually commit a modification to VERSION
+  await commitNewVersion(rdata)
+  // We create the release
+  const release = await createLocalRelease(rdata)
+  // We build and upload the artifacts
+  await uploadReleaseArtifacts(rdata)
 }
