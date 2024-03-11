@@ -1,4 +1,4 @@
-name: Test Git
+name: Release New Version
 on:
   workflow_dispatch:
     inputs:
