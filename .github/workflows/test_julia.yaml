@@ -22,4 +22,4 @@ jobs:
       - run: bun install
       - run: echo "$OWNER, $(REPO)"
       - run: |
-          echo "Owner: $(OWNER), Repo: $(REPO)"
+          echo "Owner: $OWNER, Repo: $REPO"
