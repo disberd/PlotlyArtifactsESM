@@ -193,8 +193,8 @@ export async function commitNewVersion(inp: string | ReleasesData) {
   }
   // Otherwise, we check if the VERSION file already exists and has the correct version
   if (
-    fs.existsSync("VERSION") &&
-    fs.readFileSync("VERSION").toString() === version
+    (await fs.promises.exists("VERSION")) &&
+    (await fs.promises.readFile("VERSION")).toString() === version
   ) {
     console.log(`VERSION file exists and already contains version ${version}.`);
     return true;
