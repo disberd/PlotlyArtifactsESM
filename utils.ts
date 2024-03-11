@@ -228,7 +228,7 @@ export async function getReleaseAssets(inp: string | ReleasesData) {
 export async function buildArtifactTar(inp: string | ReleasesData, options = {install: true}) {
   _.defaults(options, {
     bundle_name: "plotly-esm-min.mjs",
-    outdir: path.join(process.cwd,"out"),
+    outdir: path.join(process.cwd(),"out"),
     tar_name: "plotly-esm-min.tar.gz",
   });
   const version = (typeof inp === "string") ? inp : inp.version;
