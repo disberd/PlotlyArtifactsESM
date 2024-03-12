@@ -323,5 +323,5 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   // We build and upload the artifacts
   await uploadReleaseArtifacts(rdata)
   console.log(`Release assets for version ${version} uploaded succesfully!`)
-  return true
+  return release
 }

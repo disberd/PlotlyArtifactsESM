@@ -32,9 +32,8 @@ async function issueListener(github_context) {
   let release
   // We try to release
   try {
-    await maybeReleaseVersion(version)
-    const release_response = getLocalRelease(version)
-    release = release_response.data
+    release = await maybeReleaseVersion(version)
+    console.log(release)
   } catch (error) {
     let body = "The release failed with the following error message:\n"
     body += error.message
