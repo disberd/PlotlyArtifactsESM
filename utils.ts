@@ -319,7 +319,6 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   // We create the release
   const release = await createLocalRelease(rdata)
   // We build and upload the artifacts
-  let options = {}
-  await uploadReleaseArtifacts(rdata, options)
-  return
+  await uploadReleaseArtifacts(rdata)
+  return true
 }
