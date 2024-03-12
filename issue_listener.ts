@@ -45,6 +45,4 @@ async function issueListener(github_context) {
   await commentAndClose(issue.number, body)
 }
 
-console.log("ISSUE: ",process.env.ISSUE)
-console.log("GITHUB_CONTEXT: ",process.env.GITHUB_CONTEXT)
-await issueListener(process.env.GITHUB_CONTEXT)
+await issueListener(JSON.parse(process.env.GITHUB_CONTEXT))
