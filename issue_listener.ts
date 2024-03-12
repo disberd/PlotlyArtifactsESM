@@ -39,10 +39,13 @@ async function issueListener(github_context) {
     let body = "The release failed with the following error message:\n"
     body += error.message
     await commentAndClose(issue.number, body)
+    console.log(`Issue #${issue.number} successfully closed.`)
+    return
   }
   // We actually released, so we add a link to the release in the comment
   const body = `Release of version ${version} successfully created and available at ${release.html_url}`
   await commentAndClose(issue.number, body)
+  console.log(`Issue #${issue.number} successfully closed.`)
 }
 
 await issueListener(JSON.parse(process.env.GITHUB_CONTEXT))
