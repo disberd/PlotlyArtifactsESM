@@ -318,7 +318,10 @@ export async function maybeReleaseVersion(inp: string | ReleasesData) {
   await commitNewVersion(rdata)
   // We create the release
   const release = await createLocalRelease(rdata)
+  console.log(`Release ${version} succesfully created on the repository.`)
+  console.log(`Building and uploading the release artifact for plotly.js ${version} as asset`)
   // We build and upload the artifacts
   await uploadReleaseArtifacts(rdata)
+  console.log(`Release assets for version ${version} uploaded succesfully!`)
   return true
 }
