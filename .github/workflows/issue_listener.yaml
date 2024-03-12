@@ -12,15 +12,10 @@ jobs:
       TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REPO: ${{ github.event.repository.name }}
       OWNER: ${{ github.repository_owner }}
+      GITHUB_CONTEXT: ${{ toJson(github) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
-      - name: View the github context
-        run: echo "$GITHUB_CONTEXT"
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-      - name: View the issue title
-        run: echo "$ISSUE_TITLE"
-        env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
+      - run: bun install
+      - run: bun issue_listeners.ts
