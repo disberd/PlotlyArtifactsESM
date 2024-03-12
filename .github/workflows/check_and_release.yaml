@@ -2,7 +2,7 @@ name: Check and Release regularly
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/5 * * * *'
 permissions:
   contents: write
 jobs:
