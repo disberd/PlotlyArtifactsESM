@@ -1,0 +1,26 @@
+name: Issue Listener
+on:
+  issues:
+    types: [opened]
+permissions:
+  issues: write
+  contents: write
+jobs:
+  my-job:
+    name: release from issue
+    env:
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.event.repository.name }}
+      OWNER: ${{ github.repository_owner }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - name: View the github context
+        run: echo "$GITHUB_CONTEXT"
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+      - name: View the issue title
+        run: echo "$ISSUE_TITLE"
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
