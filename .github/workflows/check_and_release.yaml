@@ -1,6 +1,8 @@
 name: Check and Release regularly
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
 permissions:
   contents: write
 jobs:
