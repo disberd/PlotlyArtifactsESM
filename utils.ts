@@ -170,7 +170,7 @@ export async function createLocalRelease(inp: string | ReleasesData, options = {
     name: version,
     body: `[plotly.js release](${plotly_release.html_url})`,
     target_commitish: undefined,
-    make_latest: "legacy", // This make releases always appear in semantic version order even if created out of order
+    make_latest: "legacy", // This make releases appear in semver order if multiple releases happen on the same day. Otherwise it uses release day for ordering
   });
 
   const create_response = await octokit.rest.repos.createRelease(options);
