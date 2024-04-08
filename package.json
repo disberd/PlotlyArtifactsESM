@@ -8,6 +8,7 @@
     "tar": "^6.2.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.8"
+    "@types/bun": "^1.0.8",
+    "@types/semver": "^7.5.8"
   }
 }
