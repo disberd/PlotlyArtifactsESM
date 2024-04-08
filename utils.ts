@@ -111,6 +111,7 @@ export async function firstUnreleased() {
       per_page: 100,
     }
   );
+  // current might not be the latest in term of semver
   const current_version = await latestLocalVersion();
   let breakLoop = false;
   let n_unreleased = 0
@@ -121,6 +122,9 @@ export async function firstUnreleased() {
     for (const release of releases) {
       let this_version = release.tag_name;
       if (semver.gt(this_version, current_version)) {
+        // We check if we actually have this plotly release in an older local release (older w.r.t release date, not release version number)
+        const has_local = (await getLocalRelease(this_version)) !== undefined;
+        if (has_local) break
         first_unreleased = this_version;
         n_unreleased += 1
       } else {
