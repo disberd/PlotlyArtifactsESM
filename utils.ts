@@ -9,7 +9,7 @@ import _ from "lodash";
 /* Generic */
 // Make the version full semver format with preceding v
 export function normalizeVersion(version: string, strict = false) {
-  const coerced = semver.coerce(version);
+  const coerced = semver.coerce(version, { includePrerelease: true });
   const isfull = semver.valid(version) !== null;
   if (coerced === null) {
     throw new Error("The provided input should be a string convertible to a semver version using `semver.coerce`")
@@ -121,6 +121,8 @@ export async function firstUnreleased() {
     if (breakLoop) break;
     for (const release of releases) {
       let this_version = release.tag_name;
+      // Prereleases (e.g. v4.0.0-rc.0) are not released automatically
+      if (semver.prerelease(this_version) !== null) continue;
       if (semver.gt(this_version, current_version)) {
         // We check if we actually have this plotly release in an older local release (older w.r.t release date, not release version number)
         const has_local = (await getLocalRelease(this_version)) !== undefined;
@@ -252,14 +254,19 @@ export async function buildArtifactTar(inp: string | ReleasesData, options = {})
   });
   // Write the specified version to file
   await fs.promises.writeFile(path.join(outdir, "VERSION"), version);
-  // Create the zip containing the module and VERSION
+  // Copy the license of the bundled plotly.js code next to the bundle
+  await fs.promises.copyFile(
+    path.join("node_modules", "plotly.js-dist-min", "LICENSE"),
+    path.join(outdir, "LICENSE")
+  );
+  // Create the zip containing the module, VERSION and LICENSE
   return await tar.create(
     {
       gzip: true,
       file: tar_name,
       cwd: outdir,
     },
-    [bundle_name, "VERSION"]
+    [bundle_name, "VERSION", "LICENSE"]
   );
 }
 
